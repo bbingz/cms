@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Http.Metadata;
@@ -28,6 +29,32 @@ namespace SSCMS.Web.Tests.Security
                 .ToList();
 
             Assert.Empty(offenders);
+        }
+
+        [Fact]
+        public void FormOptionsDoNotUseUnboundedValueLengthLimit()
+        {
+            var startupPath = FindRepositoryFile("src/SSCMS.Web/Startup.cs");
+            var source = File.ReadAllText(startupPath);
+
+            Assert.DoesNotContain("ValueLengthLimit = int.MaxValue", source, StringComparison.Ordinal);
+        }
+
+        private static string FindRepositoryFile(string relativePath)
+        {
+            var directory = new DirectoryInfo(AppContext.BaseDirectory);
+            while (directory != null)
+            {
+                var candidate = Path.Combine(directory.FullName, relativePath);
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+
+                directory = directory.Parent;
+            }
+
+            throw new FileNotFoundException(relativePath);
         }
     }
 }

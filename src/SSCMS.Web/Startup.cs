@@ -107,7 +107,7 @@ namespace SSCMS.Web
             // });
             services.Configure<FormOptions>(x =>
             {
-                x.ValueLengthLimit = int.MaxValue;
+                x.ValueLengthLimit = 10485760; // 10MB
                 x.MultipartBodyLengthLimit = 104857600; // 100MB
             });
 
