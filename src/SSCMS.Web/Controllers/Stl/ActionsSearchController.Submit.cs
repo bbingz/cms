@@ -94,7 +94,7 @@ namespace SSCMS.Web.Controllers.Stl
                             var pagedContents = pagedBuilder.ToString();
                             pagedBuilder = new StringBuilder();
                             pagedBuilder.Append(RegexUtils.Replace(
-                                $"({request.Word.Replace(" ", "\\s")})(?!</a>)(?![^><]*>)", pagedContents,
+                                GetHighlightRegexPattern(request.Word), pagedContents,
                                 $"<span style='color:#cc0000'>{request.Word}</span>"));
                         }
 
@@ -131,7 +131,7 @@ namespace SSCMS.Web.Controllers.Stl
                             var pagedContents = pagedBuilder.ToString();
                             pagedBuilder = new StringBuilder();
                             pagedBuilder.Append(RegexUtils.Replace(
-                                $"({request.Word.Replace(" ", "\\s")})(?!</a>)(?![^><]*>)", pagedContents,
+                                GetHighlightRegexPattern(request.Word), pagedContents,
                                 $"<span style='color:#cc0000'>{request.Word}</span>"));
                         }
 

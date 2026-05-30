@@ -15,6 +15,16 @@ namespace SSCMS.Web.Tests.Controllers.Stl
     public class ActionsPublicRateLimitTests
     {
         [Fact]
+        public void SearchHighlightEscapesRegexMetaCharacters()
+        {
+            var pattern = ActionsSearchController.GetHighlightRegexPattern("(a+)+ test");
+
+            Assert.DoesNotContain("(a+)+", pattern);
+            Assert.Matches(pattern, "(a+)+ test");
+            Assert.DoesNotMatch(pattern, "aaaa test");
+        }
+
+        [Fact]
         public async Task SearchRateLimitsRepeatedAnonymousRequests()
         {
             var controller = new ActionsSearchController(

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Specialized;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using SSCMS.Configuration;
@@ -45,6 +46,12 @@ namespace SSCMS.Web.Controllers.Stl
         private static string GetRateLimitCacheKey(string ipAddress)
         {
             return CacheUtils.GetClassKey(typeof(ActionsSearchController), "Rate", ipAddress ?? "unknown");
+        }
+
+        public static string GetHighlightRegexPattern(string word)
+        {
+            var escapedWord = Regex.Escape(word).Replace("\\ ", "\\s");
+            return $"({escapedWord})(?!</a>)(?![^><]*>)";
         }
 
         private bool TryConsumeRequestQuota(string ipAddress, out int retryAfterSeconds)
