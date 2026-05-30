@@ -6,5 +6,6 @@ RUN chown -R nginx:nginx /var/cache/nginx /var/run
 
 USER nginx
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["nginx", "-t"]
 
 # docker build -f docker/Dockerfile.nginx -t sscms/nginx docker

@@ -25,6 +25,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish --chown=1654:1654 /app/sscms .
 USER 1654
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 CMD ["dotnet", "--list-runtimes"]
 ENTRYPOINT ["dotnet", "SSCMS.Web.dll"]
 
 # docker build -t sscms/core:dev .
