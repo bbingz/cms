@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using SSCMS.Configuration;
 using SSCMS.Core.Utils;
@@ -123,6 +124,13 @@ namespace SSCMS.Web.Controllers.V1
             public string Account { get; set; }
             public string Password { get; set; }
             public string NewPassword { get; set; }
+        }
+
+        private async Task<bool> IsAdministratorManagementAllowedAsync()
+        {
+            return await _accessTokenRepository.IsScopeAsync(_authManager.ApiToken, Constants.ScopeAdministrators) &&
+                   await _authManager.HasAppPermissionsAsync(MenuUtils.AppPermissions.SettingsAdministrators) &&
+                   await _authManager.IsSuperAdminAsync();
         }
 
         private static string GetLoginRateLimitCacheKey(string account, string ipAddress)

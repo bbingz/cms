@@ -93,17 +93,59 @@ namespace SSCMS.Web.Tests.Controllers.V1
             administratorRepository.Verify(x => x.ValidateAsync("admin", "bad-password", true), Times.Exactly(10));
         }
 
+        [Fact]
+        public async Task CreateRequiresSuperAdmin()
+        {
+            var administratorRepository = new Mock<IAdministratorRepository>();
+            administratorRepository
+                .Setup(x => x.InsertAsync(It.IsAny<Administrator>(), It.IsAny<string>()))
+                .ReturnsAsync((true, string.Empty));
+
+            var authManager = new Mock<IAuthManager>();
+            authManager.Setup(x => x.ApiToken).Returns("token");
+            authManager
+                .Setup(x => x.HasAppPermissionsAsync(Core.Utils.MenuUtils.AppPermissions.SettingsAdministrators))
+                .ReturnsAsync(true);
+            authManager
+                .Setup(x => x.IsSuperAdminAsync())
+                .ReturnsAsync(false);
+
+            var accessTokenRepository = new Mock<IAccessTokenRepository>();
+            accessTokenRepository
+                .Setup(x => x.IsScopeAsync("token", Configuration.Constants.ScopeAdministrators))
+                .ReturnsAsync(true);
+
+            var controller = CreateController(
+                administratorRepository.Object,
+                authManager.Object,
+                Mock.Of<IConfigRepository>(),
+                new TestCacheManager(),
+                accessTokenRepository.Object);
+
+            var result = await controller.Create(new Administrator
+            {
+                UserName = "new-admin",
+                Password = "password-md5"
+            });
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            administratorRepository.Verify(
+                x => x.InsertAsync(It.IsAny<Administrator>(), It.IsAny<string>()),
+                Times.Never);
+        }
+
         private static AdministratorsController CreateController(
             IAdministratorRepository administratorRepository,
             IAuthManager authManager,
             IConfigRepository configRepository,
-            ICacheManager cacheManager)
+            ICacheManager cacheManager,
+            IAccessTokenRepository accessTokenRepository = null)
         {
             return new AdministratorsController(
                 Mock.Of<ISettingsManager>(),
                 authManager,
                 configRepository,
-                Mock.Of<IAccessTokenRepository>(),
+                accessTokenRepository ?? Mock.Of<IAccessTokenRepository>(),
                 administratorRepository,
                 Mock.Of<IDbCacheRepository>(),
                 Mock.Of<ILogRepository>(),
