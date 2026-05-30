@@ -10,8 +10,13 @@ namespace SSCMS.Web.Controllers.Stl
     public partial class ActionsTriggerController
     {
         [HttpGet, Route(Constants.RouteStlActionsTrigger)]
-        public async Task<RedirectResult> Get([FromQuery] GetRequest request)
+        public async Task<IActionResult> Get([FromQuery] GetRequest request)
         {
+            if (!IsValidTriggerToken(request))
+            {
+                return Unauthorized();
+            }
+
             var site = await _siteRepository.GetAsync(request.SiteId);
             var redirectUrl = await _pathManager.GetIndexPageUrlAsync(site, false);
 

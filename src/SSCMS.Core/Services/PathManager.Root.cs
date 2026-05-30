@@ -271,6 +271,7 @@ namespace SSCMS.Core.Services
             int fileTemplateId, int specialId, bool isRedirect)
         {
             var apiUrl = PageUtils.GetLocalApiUrl(Constants.ApiStlPrefix);
+            var tokenPayload = $"{siteId}:{channelId}:{contentId}:{fileTemplateId}:{specialId}:{isRedirect}";
             return PageUtils.AddQueryString(PageUtils.Combine(apiUrl, Constants.RouteStlActionsTrigger), new NameValueCollection
             {
                 {"siteId", siteId.ToString()},
@@ -278,7 +279,8 @@ namespace SSCMS.Core.Services
                 {"contentId", contentId.ToString()},
                 {"fileTemplateId", fileTemplateId.ToString()},
                 {"specialId", specialId.ToString()},
-                {"isRedirect", isRedirect.ToString()}
+                {"isRedirect", isRedirect.ToString()},
+                {"token", _settingsManager.Encrypt(tokenPayload)}
             });
         }
     }
