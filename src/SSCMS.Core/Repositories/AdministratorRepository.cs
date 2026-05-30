@@ -346,18 +346,7 @@ namespace SSCMS.Core.Repositories
             }
             else if (passwordFormat == PasswordFormat.Hashed)
             {
-                passwordSalt = GenerateSalt();
-
-                var src = Encoding.Unicode.GetBytes(password);
-                var buffer2 = Convert.FromBase64String(passwordSalt);
-                var dst = new byte[buffer2.Length + src.Length];
-                Buffer.BlockCopy(buffer2, 0, dst, 0, buffer2.Length);
-                Buffer.BlockCopy(src, 0, dst, buffer2.Length, src.Length);
-                var algorithm = SHA1.Create(); // HashAlgorithm.Create("SHA1");
-                if (algorithm == null) return retVal;
-                var inArray = algorithm.ComputeHash(dst);
-
-                retVal = Convert.ToBase64String(inArray);
+                retVal = PasswordHashUtils.HashPassword(password, out passwordSalt);
             }
             else if (passwordFormat == PasswordFormat.Encrypted)
             {
@@ -472,7 +461,7 @@ namespace SSCMS.Core.Repositories
             {
                 administrator.LastActivityDate = DateTime.Now;
                 administrator.LastChangePasswordDate = DateTime.Now;
-                administrator.PasswordFormat = PasswordFormat.SM4;
+                administrator.PasswordFormat = PasswordFormat.Hashed;
                 administrator.Password = EncodePassword(password, administrator.PasswordFormat, out var passwordSalt);
                 administrator.PasswordSalt = passwordSalt;
                 administrator.Set("ConfirmPassword", string.Empty);
@@ -537,8 +526,8 @@ namespace SSCMS.Core.Repositories
                 return (false, $"密码不符合规则，请包含{config.AdminPasswordRestriction.GetDisplayName()}");
             }
 
-            password = EncodePassword(password, PasswordFormat.SM4, out var passwordSalt);
-            await ChangePasswordAsync(adminEntity, PasswordFormat.SM4, passwordSalt, password);
+            password = EncodePassword(password, PasswordFormat.Hashed, out var passwordSalt);
+            await ChangePasswordAsync(adminEntity, PasswordFormat.Hashed, passwordSalt, password);
             return (true, string.Empty);
         }
 
@@ -643,6 +632,11 @@ namespace SSCMS.Core.Repositories
             if (dbAdmin == null || string.IsNullOrEmpty(dbAdmin.Password) || string.IsNullOrEmpty(dbAdmin.PasswordSalt))
             {
                 return false;
+            }
+
+            if (dbAdmin.PasswordFormat == PasswordFormat.Hashed)
+            {
+                return PasswordHashUtils.VerifyPassword(password, isPasswordMd5, dbAdmin.Password, dbAdmin.PasswordSalt);
             }
 
             var decodePassword = DecodePassword(dbAdmin.Password, dbAdmin.PasswordFormat, dbAdmin.PasswordSalt);
