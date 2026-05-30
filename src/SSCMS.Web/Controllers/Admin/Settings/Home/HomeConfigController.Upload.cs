@@ -10,7 +10,7 @@ namespace SSCMS.Web.Controllers.Admin.Settings.Home
 {
     public partial class HomeConfigController
     {
-        [RequestSizeLimit(long.MaxValue)]
+        [RequestSizeLimit(Constants.MaxUploadRequestSize)]
         [HttpPost, Route(RouteUpload)]
         public async Task<ActionResult<StringResult>> Upload([FromForm] IFormFile file)
         {

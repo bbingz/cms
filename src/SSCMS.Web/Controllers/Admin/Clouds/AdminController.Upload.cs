@@ -9,7 +9,7 @@ namespace SSCMS.Web.Controllers.Admin.Clouds
 {
     public partial class AdminController
     {
-        [RequestSizeLimit(long.MaxValue)]
+        [RequestSizeLimit(Constants.MaxUploadRequestSize)]
         [HttpPost, Route(RouteUpload)]
         public async Task<ActionResult<UploadResult>> Upload([FromQuery] string type, [FromForm] IFormFile file)
         {

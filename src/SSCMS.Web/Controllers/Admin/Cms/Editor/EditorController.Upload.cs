@@ -11,7 +11,7 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Editor
 {
     public partial class EditorController
     {
-        [RequestSizeLimit(long.MaxValue)]
+        [RequestSizeLimit(Constants.MaxUploadRequestSize)]
         [HttpPost, Route(RouteUpload)]
         public async Task<ActionResult<StringResult>> Upload([FromQuery] UploadRequest request, [FromForm] IFormFile file)
         {

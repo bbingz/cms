@@ -15,7 +15,7 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Contents
 {
     public partial class ContentsLayerImportController
     {
-        [RequestSizeLimit(long.MaxValue)]
+        [RequestSizeLimit(Constants.MaxUploadRequestSize)]
         [HttpPost, Route(RouteUpload)]
         public async Task<ActionResult<UploadResult>> Upload([FromQuery] UploadRequest request, [FromForm] IFormFile file)
         {

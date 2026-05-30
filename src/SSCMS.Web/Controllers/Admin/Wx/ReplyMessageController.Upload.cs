@@ -12,7 +12,7 @@ namespace SSCMS.Web.Controllers.Admin.Wx
 {
     public partial class ReplyMessageController
     {
-        [RequestSizeLimit(long.MaxValue)]
+        [RequestSizeLimit(Constants.MaxUploadRequestSize)]
         [HttpPost, Route(RouteUpload)]
         public async Task<ActionResult<UploadResult>> Upload([FromQuery] UploadRequest request, [FromForm] IFormFile file)
         {
