@@ -9,7 +9,7 @@ volumes:
 services:
 
   sscms-mysql:
-    image: mysql
+    image: mysql:8.4
     command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:

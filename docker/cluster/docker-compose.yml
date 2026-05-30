@@ -13,7 +13,7 @@ services:
     restart: always
 
   cache:
-    image: "redis"
+    image: "redis:8-alpine"
     command: ["redis-server", "--requirepass", "${SSCMS_REDIS_PASSWORD:?set SSCMS_REDIS_PASSWORD}"]
     restart: always
 
