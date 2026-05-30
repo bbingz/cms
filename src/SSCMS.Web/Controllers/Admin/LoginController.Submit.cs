@@ -43,7 +43,7 @@ namespace SSCMS.Web.Controllers.Admin
             }
             else
             {
-                if (!request.IsForceLogoutAndLogin && !config.IsAdminCaptchaDisabled)
+                if (!config.IsAdminCaptchaDisabled)
                 {
                     var captcha = TranslateUtils.JsonDeserialize<CaptchaUtils.Captcha>(_settingsManager.Decrypt(request.Token));
                     if (captcha == null || string.IsNullOrEmpty(captcha.Value) || captcha.ExpireAt < DateTime.Now)

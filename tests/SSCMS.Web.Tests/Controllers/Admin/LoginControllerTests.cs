@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SSCMS.Dto;
+using SSCMS.Models;
 using SSCMS.Repositories;
 using SSCMS.Services;
 using SSCMS.Web.Controllers.Admin;
@@ -53,6 +54,46 @@ namespace SSCMS.Web.Tests.Controllers.Admin
             cacheManager.Verify(
                 x => x.AddOrUpdateAbsolute(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<int>()),
                 Times.Never);
+        }
+
+        [Fact]
+        public async Task SubmitRequiresCaptchaWhenForceLogoutRequested()
+        {
+            var configRepository = new Mock<IConfigRepository>();
+            configRepository.Setup(x => x.GetAsync()).ReturnsAsync(new Config
+            {
+                IsAdminCaptchaDisabled = false
+            });
+
+            var administratorRepository = new Mock<IAdministratorRepository>();
+
+            var controller = new LoginController(
+                Mock.Of<ISettingsManager>(),
+                Mock.Of<IAuthManager>(),
+                Mock.Of<IPathManager>(),
+                Mock.Of<ICacheManager>(),
+                Mock.Of<ISmsManager>(),
+                configRepository.Object,
+                administratorRepository.Object,
+                Mock.Of<IDbCacheRepository>(),
+                Mock.Of<ILogRepository>(),
+                Mock.Of<IStatRepository>())
+            {
+                ControllerContext = new ControllerContext
+                {
+                    HttpContext = new DefaultHttpContext()
+                }
+            };
+
+            var result = await controller.Submit(new LoginController.SubmitRequest
+            {
+                Account = "admin",
+                Password = "bad-password",
+                IsForceLogoutAndLogin = true
+            });
+
+            Assert.IsType<BadRequestObjectResult>(result.Result);
+            administratorRepository.Verify(x => x.ValidateAsync(It.IsAny<string>(), It.IsAny<string>(), true), Times.Never);
         }
     }
 }
