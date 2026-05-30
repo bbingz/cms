@@ -17,6 +17,16 @@ namespace SSCMS.Web.Controllers.Stl
         [HttpPost, Route(Constants.RouteStlActionsSearch)]
         public async Task<ActionResult<StringResult>> Submit([FromBody] StlSearchRequest request)
         {
+            if (request == null)
+            {
+                return this.Error(Constants.ErrorNotFound);
+            }
+
+            if (!TryConsumeRequestQuota(PageUtils.GetIpAddress(Request), out var retryAfterSeconds))
+            {
+                return this.Error($"请求过于频繁，请在{retryAfterSeconds}秒后重试");
+            }
+
             var template = string.Empty;
             try
             {

@@ -1,8 +1,10 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
 using Microsoft.AspNetCore.Mvc;
 using NSwag.Annotations;
 using SSCMS.Configuration;
 using SSCMS.Core.StlParser.Models;
+using SSCMS.Core.Utils;
 using SSCMS.Repositories;
 using SSCMS.Services;
 
@@ -12,14 +14,18 @@ namespace SSCMS.Web.Controllers.Stl
     [Route(Constants.ApiPrefix + Constants.ApiStlPrefix)]
     public partial class ActionsSearchController : ControllerBase
     {
+        private const int RateLimitWindowMinutes = 1;
+        private const int RateLimitMaxRequests = 60;
+
         private readonly ISettingsManager _settingsManager;
         private readonly IAuthManager _authManager;
         private readonly IParseManager _parseManager;
         private readonly IDatabaseManager _databaseManager;
         private readonly ISiteRepository _siteRepository;
         private readonly IContentRepository _contentRepository;
+        private readonly ICacheManager _cacheManager;
 
-        public ActionsSearchController(ISettingsManager settingsManager, IAuthManager authManager, IParseManager parseManager, IDatabaseManager databaseManager, ISiteRepository siteRepository, IContentRepository contentRepository)
+        public ActionsSearchController(ISettingsManager settingsManager, IAuthManager authManager, IParseManager parseManager, IDatabaseManager databaseManager, ISiteRepository siteRepository, IContentRepository contentRepository, ICacheManager cacheManager)
         {
             _settingsManager = settingsManager;
             _authManager = authManager;
@@ -27,6 +33,40 @@ namespace SSCMS.Web.Controllers.Stl
             _databaseManager = databaseManager;
             _siteRepository = siteRepository;
             _contentRepository = contentRepository;
+            _cacheManager = cacheManager;
+        }
+
+        private class RateLimitState
+        {
+            public int Count { get; set; }
+            public DateTime ExpireAt { get; set; }
+        }
+
+        private static string GetRateLimitCacheKey(string ipAddress)
+        {
+            return CacheUtils.GetClassKey(typeof(ActionsSearchController), "Rate", ipAddress ?? "unknown");
+        }
+
+        private bool TryConsumeRequestQuota(string ipAddress, out int retryAfterSeconds)
+        {
+            retryAfterSeconds = 0;
+            var cacheKey = GetRateLimitCacheKey(ipAddress);
+            var state = _cacheManager.Get<RateLimitState>(cacheKey);
+            if (state == null || state.ExpireAt <= DateTime.Now)
+            {
+                state = new RateLimitState
+                {
+                    Count = 0,
+                    ExpireAt = DateTime.Now.AddMinutes(RateLimitWindowMinutes)
+                };
+            }
+
+            state.Count++;
+            _cacheManager.AddOrUpdateAbsolute(cacheKey, state, RateLimitWindowMinutes);
+            if (state.Count <= RateLimitMaxRequests) return true;
+
+            retryAfterSeconds = (int)Math.Max(1, Math.Ceiling((state.ExpireAt - DateTime.Now).TotalSeconds));
+            return false;
         }
 
         private static NameValueCollection GetPostCollection(StlSearchRequest request)
