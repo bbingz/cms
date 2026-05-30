@@ -362,6 +362,13 @@ namespace SSCMS.Core.Repositories
                 .Where(nameof(User.Id), user.Id)
                 .CachingRemove(GetCacheKeysToRemove(user))
             );
+
+            _cacheManager.Remove(GetTokenCacheKey(user));
+        }
+
+        private static string GetTokenCacheKey(User user)
+        {
+            return $"user:{user.Id}:token";
         }
 
         public async Task CheckAsync(IList<int> userIds)
@@ -715,4 +722,3 @@ namespace SSCMS.Core.Repositories
         }
     }
 }
-
