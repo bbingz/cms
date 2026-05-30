@@ -59,32 +59,27 @@ namespace SSCMS.Web
             var settingsManager = services.AddSettingsManager(_config, _env.ContentRootPath, _env.WebRootPath, entryAssembly);
             var pluginManager = services.AddPlugins(_config, settingsManager);
 
-            if (settingsManager.CorsIsOrigins)
+            var corsOrigins = (settingsManager.CorsOrigins ?? Array.Empty<string>())
+                .Where(origin => !string.IsNullOrWhiteSpace(origin))
+                .Select(origin => origin.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            services.AddCors(options =>
             {
-                services.AddCors(options =>
+                options.AddPolicy(CorsPolicy, builder =>
                 {
-                    options.AddPolicy(CorsPolicy,
-                        builder => builder
-                            .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .WithOrigins(settingsManager.CorsOrigins)
-                            .AllowCredentials()
-                    );
+                    builder.AllowAnyMethod().AllowAnyHeader();
+
+                    if (settingsManager.CorsIsOrigins && corsOrigins.Length > 0)
+                    {
+                        builder.WithOrigins(corsOrigins).AllowCredentials();
+                        return;
+                    }
+
+                    builder.SetIsOriginAllowed(_ => true);
                 });
-            }
-            else
-            {
-                services.AddCors(options =>
-                {
-                    options.AddPolicy(CorsPolicy,
-                        builder => builder
-                            .AllowAnyMethod()
-                            .AllowAnyHeader()
-                            .SetIsOriginAllowed(x => true)
-                            .AllowCredentials()
-                    );
-                });
-            }
+            });
 
             services.AddHttpContextAccessor();
 
@@ -131,9 +126,10 @@ namespace SSCMS.Web
             // {
             //     options.MultipartBodyLengthLimit = 524288000;//500MB
             // });
-            services.Configure<FormOptions>(x => {
+            services.Configure<FormOptions>(x =>
+            {
                 x.ValueLengthLimit = int.MaxValue;
-                x.MultipartBodyLengthLimit = long.MaxValue; // In case of multipart
+                x.MultipartBodyLengthLimit = 104857600; // 100MB
             });
 
             services.AddHealthChecks();
@@ -244,9 +240,10 @@ namespace SSCMS.Web
                 }
                 else
                 {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     result = TranslateUtils.JsonSerialize(new
                     {
-                        exception.Message,
+                        Message = "服务器内部错误，请稍后重试",
                         CreatedDate = DateTime.Now
                     });
                 }
