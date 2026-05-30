@@ -40,6 +40,8 @@ namespace SSCMS.Web.Controllers.Admin
                     administrator.MobileVerified = true;
                     await _administratorRepository.UpdateAsync(administrator);
                 }
+
+                _cacheManager.Remove(codeCacheKey);
             }
             else
             {
