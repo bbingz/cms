@@ -1,5 +1,4 @@
-﻿using System.IO;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
 using RestSharp;
 
@@ -272,19 +271,7 @@ namespace SSCMS.Utils
 
         public static async Task DownloadAsync(string url, string filePath)
         {
-            FileUtils.DeleteFileIfExists(filePath);
-            FileUtils.WriteText(filePath, string.Empty);
-            using (var writer = File.OpenWrite(filePath))
-            {
-                var client = new RestClient(url);
-                var request = new RestRequest();
-
-                var stream = await client.DownloadStreamAsync(request);
-                using (stream)
-                {
-                    stream.CopyTo(writer);
-                }
-            }
+            await HttpClientUtils.DownloadAsync(url, filePath);
         }
 
         public static async Task<string> GetIpAddressAsync()
