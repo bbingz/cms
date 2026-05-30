@@ -68,7 +68,13 @@ function transform(file, html) {
 }
 
 async function writeOss(bucket, key, fileName) {
-  if (!bucket || !process.env.OSS_ACCESS_KEY_ID || !process.env.OSS_SECRET_ACCESS_KEY) {
+  const isPlaceholder = value => !value || value.includes('$(');
+  const hasOssConfig = !isPlaceholder(bucket) &&
+    !isPlaceholder(process.env.OSS_ACCESS_KEY_ID) &&
+    !isPlaceholder(process.env.OSS_SECRET_ACCESS_KEY) &&
+    /^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/.test(bucket);
+
+  if (!hasOssConfig) {
     const isReleaseBranch = process.env.BUILD_SOURCEBRANCH === 'refs/heads/master' ||
       process.env.BUILD_SOURCEBRANCH === 'refs/heads/main';
     if (isReleaseBranch) throw new Error('Missing OSS configuration for release upload');
