@@ -99,27 +99,6 @@ namespace SSCMS.Web
                     ValidateIssuer = false,
                     ValidateAudience = false
                 };
-                x.Events = new JwtBearerEvents
-                {
-                    OnMessageReceived = (context) =>
-                    {
-                        if (!context.Request.Query.TryGetValue("access_token", out var values))
-                        {
-                            return Task.CompletedTask;
-                        }
-                        if (values.Count > 1)
-                        {
-                            return Task.CompletedTask;
-                        }
-                        var token = values.Single();
-                        if (string.IsNullOrWhiteSpace(token))
-                        {
-                            return Task.CompletedTask;
-                        }
-                        context.Token = token;
-                        return Task.CompletedTask;
-                    }
-                };
             });
 
             // services.Configure<FormOptions>(options =>
