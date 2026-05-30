@@ -48,7 +48,12 @@ namespace SSCMS.Web.Controllers.V1
             var isChecked = postCheckedLevel >= site.CheckContentLevel;
             var checkedLevel = postCheckedLevel;
 
-            if (isChecked && !await _authManager.HasContentPermissionsAsync(siteId, channelId, MenuUtils.ContentPermissions.CheckLevel1))
+            if (site.CheckContentLevel <= 0)
+            {
+                isChecked = true;
+                checkedLevel = 0;
+            }
+            else if (isChecked && !await _authManager.HasContentPermissionsAsync(siteId, channelId, MenuUtils.ContentPermissions.CheckLevel1))
             {
                 isChecked = originalChecked;
                 checkedLevel = originalCheckedLevel;
