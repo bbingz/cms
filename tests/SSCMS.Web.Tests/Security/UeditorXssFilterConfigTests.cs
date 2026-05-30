@@ -19,13 +19,32 @@ namespace SSCMS.Web.Tests.Security
             Assert.DoesNotContain("outputXssFilter: false", source, StringComparison.Ordinal);
         }
 
+        [Fact]
+        public void UeditorDoesNotPublishServerConfigSamples()
+        {
+            Assert.False(File.Exists(FindRepositoryPath("src/SSCMS.Web/wwwroot/sitefiles/assets/lib/ueditor/config.json")));
+            Assert.False(File.Exists(FindRepositoryPath("src/SSCMS.Web/wwwroot/sitefiles/assets/lib/ueditor/index.html")));
+        }
+
         private static string FindRepositoryFile(string relativePath)
+        {
+            var candidate = FindRepositoryPath(relativePath);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            throw new FileNotFoundException(relativePath);
+        }
+
+        private static string FindRepositoryPath(string relativePath)
         {
             var directory = new DirectoryInfo(AppContext.BaseDirectory);
             while (directory != null)
             {
                 var candidate = Path.Combine(directory.FullName, relativePath);
-                if (File.Exists(candidate))
+                var parent = Path.GetDirectoryName(candidate);
+                if (File.Exists(candidate) || (parent != null && Directory.Exists(parent)))
                 {
                     return candidate;
                 }
@@ -33,7 +52,7 @@ namespace SSCMS.Web.Tests.Security
                 directory = directory.Parent;
             }
 
-            throw new FileNotFoundException(relativePath);
+            throw new DirectoryNotFoundException(relativePath);
         }
     }
 }
