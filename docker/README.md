@@ -27,12 +27,14 @@ mkdir wwwroot
 接下来，我们使用 SQLite 本地数据库运行 SSCMS：
 
 ```bash
+export SSCMS_SECURITY_KEY="$(uuidgen)"
+
 docker run -d \
     --name my-sscms \
     -p 80:80 \
     --restart=always \
     -v "$(pwd)"/wwwroot:/app/wwwroot \
-    -e SSCMS_SECURITY_KEY=e2a3d303-ac9b-41ff-9154-930710af0845 \
+    -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \
     -e SSCMS_DATABASE_TYPE=SQLite \
     sscms/core:latest
 ```
@@ -50,12 +52,14 @@ docker run -d \
 除了将当前文件夹下的 `wwwroot` 目录作为站点根目录存储数据，我们也可以将镜像数据持久化存储在 Volume 中：
 
 ```bash
+export SSCMS_SECURITY_KEY="$(uuidgen)"
+
 docker run -d \
     --name my-sscms \
     -p 80:80 \
     --restart=always \
     -v volume-sscms:/app/wwwroot \
-    -e SSCMS_SECURITY_KEY=e2a3d303-ac9b-41ff-9154-930710af0845 \
+    -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \
     -e SSCMS_DATABASE_TYPE=SQLite \
     sscms/core:latest
 ```
