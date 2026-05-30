@@ -31,7 +31,7 @@ export SSCMS_SECURITY_KEY="$(uuidgen)"
 
 docker run -d \
     --name my-sscms \
-    -p 80:80 \
+    -p 80:8080 \
     --restart=always \
     -v "$(pwd)"/wwwroot:/app/wwwroot \
     -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \
@@ -41,7 +41,7 @@ docker run -d \
 
 - `-d` 参数让容器以后台任务形式运行
 - `-name` 参数将容器实例命名为 my-sscms，可以更换为其他名称
-- `-p` 参数映射容器的80端口到宿主机的80端口，如果希望使用8080端口访问可以设置 `-p 8080:80`
+- `-p` 参数映射容器的8080端口到宿主机的80端口，如果希望使用8080端口访问可以设置 `-p 8080:8080`
 - `-restart` 参数使得容器能够自动重启，必须使用 `always` 选项，否则容器将无法安装及升级插件
 - `-v` 参数将当前文件夹下的 `wwwroot` 目录作为网站跟目录，从而保存 SSCMS 站点数据，其中 `$(pwd)` 代表当前文件夹
 - `-e` 参数设置容器运行环境变量，SSCMS 系统将读取环境变量，作为容器运行的参数，在此我们设置 `SecurityKey` 为随机的 GUID 值，数据库类型为 SQLite
@@ -56,7 +56,7 @@ export SSCMS_SECURITY_KEY="$(uuidgen)"
 
 docker run -d \
     --name my-sscms \
-    -p 80:80 \
+    -p 80:8080 \
     --restart=always \
     -v volume-sscms:/app/wwwroot \
     -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \

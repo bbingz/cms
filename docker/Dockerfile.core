@@ -1,9 +1,10 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-bookworm-slim AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-noble-chiseled-extra AS base
 WORKDIR /app
+EXPOSE 8080
 EXPOSE 80
 EXPOSE 443
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-bookworm-slim AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-noble AS build
 WORKDIR /sscms
 RUN wget https://dl.sscms.com/cms/7.4.0/sscms-7.4.0-linux-x64.tar.gz
 RUN tar -xzf sscms-7.4.0-linux-x64.tar.gz
@@ -13,7 +14,7 @@ RUN echo `date +%Y-%m-%d-%H-%M-%S` > /sscms/_wwwroot/sitefiles/version.txt
 
 FROM base AS final
 WORKDIR /app
-COPY --from=build /sscms .
+COPY --from=build --chown=1654:1654 /sscms .
 ENTRYPOINT ["dotnet", "SSCMS.Web.dll"]
 
 # docker build -f Dockerfile.core --no-cache -t sscms/core:latest -t sscms/core:7.4.0 .

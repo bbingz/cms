@@ -24,7 +24,7 @@ services:
     image: "sscms/core"
     restart: always
     ports:
-      - "80:80"
+      - "80:8080"
     environment:
       SSCMS_SECURITY_KEY: ${SSCMS_SECURITY_KEY:?set SSCMS_SECURITY_KEY}
       SSCMS_DATABASE_TYPE: PostgreSQL
