@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SSCMS.Configuration;
 using SSCMS.Enums;
@@ -13,6 +14,29 @@ namespace SSCMS.Web.Tests.Controllers.Admin.Common.Editor
 {
     public class ActionsControllerTests
     {
+        [Fact]
+        public async Task UploadScrawlRequiresAccessToRequestedSite()
+        {
+            var authManager = new Mock<IAuthManager>();
+            authManager
+                .Setup(x => x.HasSitePermissionsAsync(2))
+                .ReturnsAsync(false);
+
+            var controller = new ActionsController(
+                Mock.Of<IPathManager>(),
+                Mock.Of<IStorageManager>(),
+                Mock.Of<IVodManager>(),
+                Mock.Of<ISiteRepository>(),
+                authManager.Object);
+
+            var result = await controller.UploadScrawl(2, new ActionsController.UploadScrawlRequest
+            {
+                File = "not-base64"
+            });
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+        }
+
         [Fact]
         public async Task UploadScrawlRejectsNonImageBytes()
         {
@@ -30,11 +54,17 @@ namespace SSCMS.Web.Tests.Controllers.Admin.Common.Editor
             pathManager.Setup(x => x.IsImageSizeAllowed(site, It.IsAny<long>())).Returns(true);
             pathManager.Setup(x => x.GetUploadDirectoryPathAsync(site, UploadType.Image)).ReturnsAsync("/tmp");
 
+            var authManager = new Mock<IAuthManager>();
+            authManager
+                .Setup(x => x.HasSitePermissionsAsync(1))
+                .ReturnsAsync(true);
+
             var controller = new ActionsController(
                 pathManager.Object,
                 Mock.Of<IStorageManager>(),
                 Mock.Of<IVodManager>(),
-                siteRepository.Object);
+                siteRepository.Object,
+                authManager.Object);
 
             var result = await controller.UploadScrawl(1, new ActionsController.UploadScrawlRequest
             {

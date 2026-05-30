@@ -13,6 +13,11 @@ namespace SSCMS.Web.Controllers.Admin.Common.Editor
         [HttpPost, Route(RouteActionsUploadScrawl)]
         public async Task<ActionResult<UploadScrawlResult>> UploadScrawl([FromQuery] int siteId, [FromForm] UploadScrawlRequest request)
         {
+            if (!await HasSiteAccessAsync(siteId))
+            {
+                return Unauthorized();
+            }
+
             var site = await _siteRepository.GetAsync(siteId);
 
             byte[] bytes;

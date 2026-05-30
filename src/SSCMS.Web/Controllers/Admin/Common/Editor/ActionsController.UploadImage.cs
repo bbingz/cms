@@ -15,6 +15,11 @@ namespace SSCMS.Web.Controllers.Admin.Common.Editor
         [HttpPost, Route(RouteActionsUploadImage)]
         public async Task<ActionResult<UploadImageResult>> UploadImage([FromQuery] SiteRequest request, [FromForm] IFormFile file)
         {
+            if (!await HasSiteAccessAsync(request.SiteId))
+            {
+                return Unauthorized();
+            }
+
             var site = await _siteRepository.GetAsync(request.SiteId);
 
             if (file == null)
