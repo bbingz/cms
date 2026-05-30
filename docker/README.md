@@ -7,7 +7,7 @@ SSCMS 官方镜像，跟随 SSCMS 版本同步更新。
 拉取最新版本的 [SSCMS 镜像](https://hub.docker.com/r/sscms/core)，运行命令：
 
 ``` bash
-docker pull sscms/core:latest
+docker pull sscms/core:7.4.0
 ```
 
 如果需要获取指定版本的 [SSCMS 镜像](https://hub.docker.com/r/sscms/core)，可以运行命令：
@@ -36,7 +36,7 @@ docker run -d \
     -v "$(pwd)"/wwwroot:/app/wwwroot \
     -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \
     -e SSCMS_DATABASE_TYPE=SQLite \
-    sscms/core:latest
+    sscms/core:7.4.0
 ```
 
 - `-d` 参数让容器以后台任务形式运行
@@ -61,7 +61,7 @@ docker run -d \
     -v volume-sscms:/app/wwwroot \
     -e SSCMS_SECURITY_KEY="$SSCMS_SECURITY_KEY" \
     -e SSCMS_DATABASE_TYPE=SQLite \
-    sscms/core:latest
+    sscms/core:7.4.0
 ```
 
 此命令将自动创建名称为 `volume-sscms` 的 Docker Volume。

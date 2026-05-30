@@ -6,13 +6,13 @@ volumes:
 services:
 
   reverse-proxy:
-    image: "sscms/nginx"
+    image: "sscms/nginx:7.4.0"
     ports:
       - "80:8080"
     restart: always
 
   cache:
-    image: "redis:8-alpine"
+    image: "redis:8-alpine@sha256:09160599abd229764c0fb44cb6be640294e1d360a54b19985ab4843dcf2d90f1"
     command: ["redis-server", "--requirepass", "${SSCMS_REDIS_PASSWORD:?set SSCMS_REDIS_PASSWORD}"]
     restart: always
 
@@ -20,7 +20,7 @@ services:
     depends_on:
       - reverse-proxy
       - cache
-    image: "sscms/core"
+    image: "sscms/core:7.4.0"
     expose:
       - "8080"
     environment:
