@@ -2,15 +2,17 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using SSCMS.Configuration;
 
 namespace SSCMS.Core.Utils
 {
     public static class SafeZipUtils
     {
-        public static void ExtractZip(string zipFilePath, string directoryPath, string fileFilter = null)
+        public static void ExtractZip(string zipFilePath, string directoryPath, string fileFilter = null, long maxExtractedBytes = Constants.MaxUploadRequestSize)
         {
             var destinationRoot = Path.GetFullPath(directoryPath);
             Directory.CreateDirectory(destinationRoot);
+            long extractedBytes = 0;
 
             using var fileStream = File.OpenRead(zipFilePath);
             using var zipFile = new ZipFile(fileStream);
@@ -31,6 +33,17 @@ namespace SSCMS.Core.Utils
                 if (!entry.IsFile)
                 {
                     continue;
+                }
+
+                if (entry.Size < 0)
+                {
+                    throw new InvalidOperationException($"Zip entry '{entry.Name}' has an unknown extracted size.");
+                }
+
+                extractedBytes += entry.Size;
+                if (extractedBytes > maxExtractedBytes)
+                {
+                    throw new InvalidOperationException("Zip archive exceeds the maximum extracted size.");
                 }
 
                 var destinationDirectory = Path.GetDirectoryName(destinationPath);
