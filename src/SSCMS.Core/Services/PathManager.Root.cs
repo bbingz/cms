@@ -255,6 +255,8 @@ namespace SSCMS.Core.Services
         public string GetPageContentsApiParameters(int siteId, int pageChannelId, int templateId, int totalNum, int pageCount,
             int currentPageIndex, string stlPageContentsElement)
         {
+            var encryptedElement = _settingsManager.Encrypt(stlPageContentsElement);
+            var tokenPayload = $"{siteId}:{pageChannelId}:{templateId}:{totalNum}:{pageCount}:{currentPageIndex}:{encryptedElement}";
             return $@"
 {{
     siteId: {siteId},
@@ -263,7 +265,8 @@ namespace SSCMS.Core.Services
     totalNum: {totalNum},
     pageCount: {pageCount},
     currentPageIndex: {currentPageIndex},
-    stlPageContentsElement: '{_settingsManager.Encrypt(stlPageContentsElement)}'
+    stlPageContentsElement: '{encryptedElement}',
+    token: '{_settingsManager.Encrypt(tokenPayload)}'
 }}";
         }
 
