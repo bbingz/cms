@@ -24,6 +24,7 @@ RUN echo `date +%Y-%m-%d-%H-%M-%S` > /app/sscms/_wwwroot/sitefiles/version.txt
 FROM base AS final
 WORKDIR /app
 COPY --from=publish --chown=1654:1654 /app/sscms .
+USER 1654
 ENTRYPOINT ["dotnet", "SSCMS.Web.dll"]
 
 # docker build -t sscms/core:dev .

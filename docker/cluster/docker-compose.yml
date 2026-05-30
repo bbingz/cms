@@ -8,8 +8,7 @@ services:
   reverse-proxy:
     image: "sscms/nginx"
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:8080"
     restart: always
 
   cache:
