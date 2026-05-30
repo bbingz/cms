@@ -197,12 +197,15 @@ namespace SSCMS.Core.Services
             }
 
             var apiUrl = GetApiHostUrl(site, Constants.ApiPrefix);
+            var encryptedFileUrl = _settingsManager.Encrypt(fileUrl);
+            var tokenPayload = $"{site.Id}:{channelId}:{contentId}:{encryptedFileUrl}";
             return PageUtils.AddQueryString(PageUtils.Combine(apiUrl, Constants.ApiStlPrefix, Constants.RouteStlActionsDownload), new NameValueCollection
             {
                 {"siteId", site.Id.ToString()},
                 {"channelId", channelId.ToString()},
                 {"contentId", contentId.ToString()},
-                {"fileUrl", _settingsManager.Encrypt(fileUrl)}
+                {"fileUrl", encryptedFileUrl},
+                {"token", _settingsManager.Encrypt(tokenPayload)}
             });
         }
 
