@@ -25,5 +25,26 @@ namespace SSCMS.Web.Tests.Services
         {
             Assert.False(DatabaseManager.IsReadOnlySelectSql(sql));
         }
+
+        [Theory]
+        [InlineData("Title = 'hello' AND Id > 0")]
+        [InlineData("(Checked = true OR IsTop = true)")]
+        [InlineData("AddDate >= '2026-01-01'")]
+        public void IsSafeRawSqlConditionAllowsSimpleConditions(string condition)
+        {
+            Assert.True(DatabaseManager.IsSafeRawSqlCondition(condition));
+        }
+
+        [Theory]
+        [InlineData("Title = 'x'; delete from siteserver_Content")]
+        [InlineData("Title = 'x' --")]
+        [InlineData("Title = 'x' /* hidden */")]
+        [InlineData("Title = 'unterminated")]
+        [InlineData("exists(select * from siteserver_Administrator)")]
+        [InlineData("Title = 'x' union select Password from siteserver_Administrator")]
+        public void IsSafeRawSqlConditionRejectsUnsafeFragments(string condition)
+        {
+            Assert.False(DatabaseManager.IsSafeRawSqlCondition(condition));
+        }
     }
 }

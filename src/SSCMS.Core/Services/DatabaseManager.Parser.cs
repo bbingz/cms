@@ -39,8 +39,29 @@ namespace SSCMS.Core.Services
             return !Regex.IsMatch(normalized, @"^select\b[\s\S]*\binto\b", RegexOptions.IgnoreCase);
         }
 
+        public static bool IsSafeRawSqlCondition(string condition)
+        {
+            if (string.IsNullOrWhiteSpace(condition)) return false;
+
+            var sql = GetSqlOutsideLiteralsAndComments(condition, out var hasComment, out var hasUnterminatedLiteral);
+            if (hasComment || hasUnterminatedLiteral) return false;
+
+            var normalized = sql.Trim();
+            if (string.IsNullOrWhiteSpace(normalized)) return false;
+            if (normalized.Contains(';')) return false;
+
+            return !Regex.IsMatch(normalized, @"\b(select|with|union|intersect|except|insert|update|delete|drop|alter|create|truncate|merge|exec|execute|grant|revoke|backup|restore|call)\b", RegexOptions.IgnoreCase);
+        }
+
         private static string GetSqlOutsideLiteralsAndComments(string sqlString)
         {
+            return GetSqlOutsideLiteralsAndComments(sqlString, out _, out _);
+        }
+
+        private static string GetSqlOutsideLiteralsAndComments(string sqlString, out bool hasComment, out bool hasUnterminatedLiteral)
+        {
+            hasComment = false;
+            hasUnterminatedLiteral = false;
             if (string.IsNullOrEmpty(sqlString)) return string.Empty;
 
             var builder = new StringBuilder(sqlString.Length);
@@ -101,6 +122,7 @@ namespace SSCMS.Core.Services
                 if (c == '-' && next == '-')
                 {
                     lineComment = true;
+                    hasComment = true;
                     builder.Append("  ");
                     i++;
                     continue;
@@ -109,6 +131,7 @@ namespace SSCMS.Core.Services
                 if (c == '/' && next == '*')
                 {
                     blockComment = true;
+                    hasComment = true;
                     builder.Append("  ");
                     i++;
                     continue;
@@ -124,6 +147,7 @@ namespace SSCMS.Core.Services
                 builder.Append(c);
             }
 
+            hasUnterminatedLiteral = quote != '\0' || blockComment;
             return builder.ToString();
         }
 
