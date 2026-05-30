@@ -38,6 +38,10 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Material
             {
                 return this.Error(Constants.ErrorImageSizeAllowed);
             }
+            if (!await ImageUtils.IsValidImageAsync(file))
+            {
+                return this.Error(Constants.ErrorImageExtensionAllowed);
+            }
 
             var materialFileName = PathUtils.GetMaterialFileName(fileName);
             var virtualDirectoryPath = PathUtils.GetMaterialVirtualDirectoryPath(UploadType.Image);

@@ -40,6 +40,10 @@ namespace SSCMS.Web.Controllers.Admin.Common.Material
             {
                 return this.Error(Constants.ErrorImageSizeAllowed);
             }
+            if (!await ImageUtils.IsValidImageAsync(file))
+            {
+                return this.Error(Constants.ErrorImageExtensionAllowed);
+            }
 
             var localDirectoryPath = await _pathManager.GetUploadDirectoryPathAsync(site, UploadType.Image);
             var filePath = PathUtils.Combine(localDirectoryPath, _pathManager.GetUploadFileName(site, fileName));

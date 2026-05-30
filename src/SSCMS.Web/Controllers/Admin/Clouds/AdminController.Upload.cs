@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SSCMS.Configuration;
+using SSCMS.Core.Utils;
 using SSCMS.Utils;
 
 namespace SSCMS.Web.Controllers.Admin.Clouds
@@ -20,6 +21,10 @@ namespace SSCMS.Web.Controllers.Admin.Clouds
             if (file == null) return this.Error(Constants.ErrorUpload);
             var extension = PathUtils.GetExtension(file.FileName);
             if (!FileUtils.IsImage(extension))
+            {
+                return this.Error(Constants.ErrorImageExtensionAllowed);
+            }
+            if (!await ImageUtils.IsValidImageAsync(file))
             {
                 return this.Error(Constants.ErrorImageExtensionAllowed);
             }

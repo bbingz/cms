@@ -26,6 +26,10 @@ namespace SSCMS.Web.Controllers.Admin.Settings.Users
             {
                 return this.Error(Constants.ErrorImageExtensionAllowed);
             }
+            if (!await ImageUtils.IsValidImageAsync(file))
+            {
+                return this.Error(Constants.ErrorImageExtensionAllowed);
+            }
 
             await _pathManager.UploadAsync(file, filePath);
 

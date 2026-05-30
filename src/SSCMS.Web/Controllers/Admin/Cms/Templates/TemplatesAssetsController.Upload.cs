@@ -70,6 +70,10 @@ namespace SSCMS.Web.Controllers.Admin.Cms.Templates
                 {
                     return this.Error(Constants.ErrorImageSizeAllowed);
                 }
+                if (!await ImageUtils.IsValidImageAsync(file))
+                {
+                    return this.Error(Constants.ErrorImageExtensionAllowed);
+                }
             }
             else
             {
