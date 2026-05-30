@@ -70,5 +70,38 @@ namespace SSCMS.Web.Tests.Controllers.Stl
             Assert.IsType<UnauthorizedResult>(result.Result);
             siteRepository.Verify(x => x.GetAsync(It.IsAny<int>()), Times.Never);
         }
+
+        [Fact]
+        public async Task SubmitRejectsInvalidEncryptedToken()
+        {
+            var siteRepository = new Mock<ISiteRepository>();
+            var settingsManager = new Mock<ISettingsManager>();
+            settingsManager
+                .Setup(x => x.Decrypt("invalid", null))
+                .Throws(new System.Exception("invalid token"));
+
+            var controller = new ActionsPageContentsController(
+                settingsManager.Object,
+                Mock.Of<IAuthManager>(),
+                Mock.Of<IParseManager>(),
+                siteRepository.Object,
+                Mock.Of<IChannelRepository>(),
+                Mock.Of<ITemplateRepository>());
+
+            var result = await controller.Submit(new ActionsPageContentsController.SubmitRequest
+            {
+                SiteId = 1,
+                PageChannelId = 1,
+                TemplateId = 1,
+                TotalNum = 10,
+                PageCount = 2,
+                CurrentPageIndex = 1,
+                StlPageContentsElement = "encrypted",
+                Token = "invalid"
+            });
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            siteRepository.Verify(x => x.GetAsync(It.IsAny<int>()), Times.Never);
+        }
     }
 }

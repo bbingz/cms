@@ -55,7 +55,14 @@ namespace SSCMS.Web.Controllers.Stl
         {
             if (request == null || string.IsNullOrEmpty(request.Token)) return false;
 
-            return _settingsManager.Decrypt(request.Token) == GetPageContentsTokenPayload(request);
+            try
+            {
+                return _settingsManager.Decrypt(request.Token) == GetPageContentsTokenPayload(request);
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
