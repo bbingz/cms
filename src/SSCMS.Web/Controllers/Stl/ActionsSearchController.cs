@@ -8,6 +8,7 @@ using SSCMS.Core.StlParser.Models;
 using SSCMS.Core.Utils;
 using SSCMS.Repositories;
 using SSCMS.Services;
+using SSCMS.Web.Controllers;
 
 namespace SSCMS.Web.Controllers.Stl
 {
@@ -58,22 +59,25 @@ namespace SSCMS.Web.Controllers.Stl
         {
             retryAfterSeconds = 0;
             var cacheKey = GetRateLimitCacheKey(ipAddress);
-            var state = _cacheManager.Get<RateLimitState>(cacheKey);
-            if (state == null || state.ExpireAt <= DateTime.Now)
+            lock (RateLimitLockManager.GetLock(cacheKey))
             {
-                state = new RateLimitState
+                var state = _cacheManager.Get<RateLimitState>(cacheKey);
+                if (state == null || state.ExpireAt <= DateTime.Now)
                 {
-                    Count = 0,
-                    ExpireAt = DateTime.Now.AddMinutes(RateLimitWindowMinutes)
-                };
+                    state = new RateLimitState
+                    {
+                        Count = 0,
+                        ExpireAt = DateTime.Now.AddMinutes(RateLimitWindowMinutes)
+                    };
+                }
+
+                state.Count++;
+                _cacheManager.AddOrUpdateAbsolute(cacheKey, state, RateLimitWindowMinutes);
+                if (state.Count <= RateLimitMaxRequests) return true;
+
+                retryAfterSeconds = (int)Math.Max(1, Math.Ceiling((state.ExpireAt - DateTime.Now).TotalSeconds));
+                return false;
             }
-
-            state.Count++;
-            _cacheManager.AddOrUpdateAbsolute(cacheKey, state, RateLimitWindowMinutes);
-            if (state.Count <= RateLimitMaxRequests) return true;
-
-            retryAfterSeconds = (int)Math.Max(1, Math.Ceiling((state.ExpireAt - DateTime.Now).TotalSeconds));
-            return false;
         }
 
         private static NameValueCollection GetPostCollection(StlSearchRequest request)

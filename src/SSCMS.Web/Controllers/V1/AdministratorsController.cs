@@ -8,6 +8,7 @@ using SSCMS.Models;
 using SSCMS.Repositories;
 using SSCMS.Services;
 using SSCMS.Utils;
+using SSCMS.Web.Controllers;
 
 namespace SSCMS.Web.Controllers.V1
 {
@@ -142,23 +143,26 @@ namespace SSCMS.Web.Controllers.V1
         {
             retryAfterSeconds = 0;
             var cacheKey = GetLoginRateLimitCacheKey(account, ipAddress);
-            var state = _cacheManager.Get<LoginRateLimitState>(cacheKey);
-            if (state == null || state.ExpireAt <= DateTime.Now)
+            lock (RateLimitLockManager.GetLock(cacheKey))
             {
-                state = new LoginRateLimitState
+                var state = _cacheManager.Get<LoginRateLimitState>(cacheKey);
+                if (state == null || state.ExpireAt <= DateTime.Now)
                 {
-                    Count = 0,
-                    ExpireAt = DateTime.Now.AddMinutes(LoginRateLimitWindowMinutes)
-                };
+                    state = new LoginRateLimitState
+                    {
+                        Count = 0,
+                        ExpireAt = DateTime.Now.AddMinutes(LoginRateLimitWindowMinutes)
+                    };
+                }
+
+                state.Count++;
+                var minutes = Math.Max(1, (int)Math.Ceiling((state.ExpireAt - DateTime.Now).TotalMinutes));
+                _cacheManager.AddOrUpdateAbsolute(cacheKey, state, minutes);
+                if (state.Count <= LoginRateLimitMaxAttempts) return true;
+
+                retryAfterSeconds = Math.Max(1, (int)Math.Ceiling((state.ExpireAt - DateTime.Now).TotalSeconds));
+                return false;
             }
-
-            state.Count++;
-            var minutes = Math.Max(1, (int)Math.Ceiling((state.ExpireAt - DateTime.Now).TotalMinutes));
-            _cacheManager.AddOrUpdateAbsolute(cacheKey, state, minutes);
-            if (state.Count <= LoginRateLimitMaxAttempts) return true;
-
-            retryAfterSeconds = Math.Max(1, (int)Math.Ceiling((state.ExpireAt - DateTime.Now).TotalSeconds));
-            return false;
         }
 
         private void ClearLoginRateLimit(string account, string ipAddress)
