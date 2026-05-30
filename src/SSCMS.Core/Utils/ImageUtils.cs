@@ -91,6 +91,20 @@ namespace SSCMS.Core.Utils
             }
         }
 
+        public static bool IsValidImage(byte[] imgByte)
+        {
+            if (imgByte == null || imgByte.Length == 0) return false;
+
+            try
+            {
+                return Image.Identify(imgByte) != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static void ResizeImageIfExceeding(string imagePath, int resizeWidth)
         {
             if (string.IsNullOrEmpty(imagePath) || resizeWidth <= 0) return;
