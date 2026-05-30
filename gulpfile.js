@@ -69,12 +69,12 @@ function transform(file, html) {
 
 async function writeOss(bucket, key, fileName) {
   if (!bucket || !process.env.OSS_ACCESS_KEY_ID || !process.env.OSS_SECRET_ACCESS_KEY) {
-    if (process.env.BUILD_REASON === 'PullRequest' || process.env.SYSTEM_PULLREQUEST_PULLREQUESTID) {
-      console.log(`Skipping OSS upload for ${fileName}: OSS credentials are unavailable in pull request builds.`);
-      return;
-    }
+    const isReleaseBranch = process.env.BUILD_SOURCEBRANCH === 'refs/heads/master' ||
+      process.env.BUILD_SOURCEBRANCH === 'refs/heads/main';
+    if (isReleaseBranch) throw new Error('Missing OSS configuration for release upload');
 
-    throw new Error('Missing OSS configuration for release upload');
+    console.log(`Skipping OSS upload for ${fileName}: OSS credentials are unavailable in this build.`);
+    return;
   }
 
   var client = new OSS({
