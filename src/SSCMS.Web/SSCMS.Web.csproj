@@ -6,7 +6,7 @@
     <Version>7.4.0</Version>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
-    <ApplicationIcon>logo.ico</ApplicationIcon>
+    <ApplicationIcon Condition="'$(OS)' == 'Windows_NT'">logo.ico</ApplicationIcon>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <AssemblyName>SSCMS.Web</AssemblyName>
