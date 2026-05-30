@@ -95,5 +95,18 @@ namespace SSCMS.Web.Tests.Controllers.Admin
             Assert.IsType<BadRequestObjectResult>(result.Result);
             administratorRepository.Verify(x => x.ValidateAsync(It.IsAny<string>(), It.IsAny<string>(), true), Times.Never);
         }
+
+        [Fact]
+        public void SubmitResultUsesSanitizedAdministratorDto()
+        {
+            var property = typeof(LoginController.SubmitResult).GetProperty(nameof(LoginController.SubmitResult.Administrator));
+
+            Assert.NotNull(property);
+            Assert.NotEqual(typeof(Administrator), property.PropertyType);
+            Assert.Null(property.PropertyType.GetProperty(nameof(Administrator.Password)));
+            Assert.Null(property.PropertyType.GetProperty(nameof(Administrator.PasswordSalt)));
+            Assert.Null(property.PropertyType.GetProperty(nameof(Administrator.Email)));
+            Assert.Null(property.PropertyType.GetProperty(nameof(Administrator.Mobile)));
+        }
     }
 }

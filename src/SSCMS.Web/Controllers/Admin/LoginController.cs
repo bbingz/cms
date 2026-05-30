@@ -71,10 +71,35 @@ namespace SSCMS.Web.Controllers.Admin
         public class SubmitResult
         {
             public bool IsLoginExists { get; set; }
-            public Administrator Administrator { get; set; }
+            public LoginAdministrator Administrator { get; set; }
             public string SessionId { get; set; }
             public bool IsEnforcePasswordChange { get; set; }
             public string Token { get; set; }
+        }
+
+        public class LoginAdministrator
+        {
+            public int Id { get; set; }
+            public string Guid { get; set; }
+            public string UserName { get; set; }
+            public string DisplayName { get; set; }
+            public string AvatarUrl { get; set; }
+            public DateTime? LastActivityDate { get; set; }
+
+            public static LoginAdministrator From(Administrator administrator)
+            {
+                if (administrator == null) return null;
+
+                return new LoginAdministrator
+                {
+                    Id = administrator.Id,
+                    Guid = administrator.Guid,
+                    UserName = administrator.UserName,
+                    DisplayName = administrator.DisplayName,
+                    AvatarUrl = administrator.AvatarUrl,
+                    LastActivityDate = administrator.LastActivityDate
+                };
+            }
         }
 
         public class SendSmsRequest

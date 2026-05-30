@@ -118,7 +118,7 @@ namespace SSCMS.Web.Controllers.Admin
             return new SubmitResult
             {
                 IsLoginExists = false,
-                Administrator = administrator,
+                Administrator = LoginAdministrator.From(administrator),
                 SessionId = sessionId,
                 IsEnforcePasswordChange = isEnforcePasswordChange,
                 Token = token
