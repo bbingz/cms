@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Moq;
 using SSCMS.Core.Utils;
 using SSCMS.Dto;
@@ -166,6 +167,41 @@ namespace SSCMS.Web.Tests.Controllers.Admin.Cms.Editor
             authManager.Verify(
                 x => x.HasContentPermissionsAsync(1, 2, MenuUtils.ContentPermissions.CheckLevel1),
                 Times.Once);
+        }
+
+        [Fact]
+        public async Task UploadRequiresAccessToRequestedSite()
+        {
+            var authManager = new Mock<IAuthManager>();
+            authManager
+                .Setup(x => x.HasSitePermissionsAsync(2))
+                .ReturnsAsync(false);
+
+            var siteRepository = new Mock<ISiteRepository>();
+            siteRepository
+                .Setup(x => x.GetAsync(2))
+                .ReturnsAsync(new Site { Id = 2 });
+
+            var controller = CreateController(
+                authManager.Object,
+                CreateCreateManager(),
+                Mock.Of<IPathManager>(),
+                CreateStorageManager(),
+                siteRepository.Object,
+                CreateChannelRepository(),
+                Mock.Of<IContentRepository>(),
+                CreateMailManager(),
+                CreateContentTagRepository().Object,
+                CreateTranslateRepository().Object);
+
+            var result = await controller.Upload(new EditorController.UploadRequest
+            {
+                SiteId = 2,
+                Type = nameof(Content.ImageUrl)
+            }, null);
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            siteRepository.Verify(x => x.GetAsync(It.IsAny<int>()), Times.Never);
         }
 
         private static Mock<IAuthManager> CreateAuthManager(string contentPermission)
