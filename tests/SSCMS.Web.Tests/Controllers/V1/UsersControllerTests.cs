@@ -106,6 +106,42 @@ namespace SSCMS.Web.Tests.Controllers.V1
             userRepository.Verify(x => x.UpdateAsync(It.IsAny<User>()), Times.Never);
         }
 
+        [Fact]
+        public async Task GetRequiresSettingsUsersPermission()
+        {
+            var authManager = new Mock<IAuthManager>();
+            authManager.Setup(x => x.ApiToken).Returns("token");
+            authManager
+                .Setup(x => x.HasAppPermissionsAsync(It.IsAny<string>()))
+                .ReturnsAsync(false);
+
+            var accessTokenRepository = new Mock<IAccessTokenRepository>();
+            accessTokenRepository
+                .Setup(x => x.IsScopeAsync("token", It.IsAny<string>()))
+                .ReturnsAsync(true);
+
+            var userRepository = new Mock<IUserRepository>();
+
+            var controller = new UsersController(
+                authManager.Object,
+                Mock.Of<IPathManager>(),
+                Mock.Of<IConfigRepository>(),
+                accessTokenRepository.Object,
+                userRepository.Object,
+                Mock.Of<ILogRepository>(),
+                Mock.Of<IStatRepository>(),
+                Mock.Of<IDbCacheRepository>(),
+                Mock.Of<IUserGroupRepository>(),
+                Mock.Of<IUsersInGroupsRepository>(),
+                new TestCacheManager());
+
+            var result = await controller.Get("alice");
+
+            Assert.IsType<UnauthorizedResult>(result.Result);
+            userRepository.Verify(x => x.IsUserNameExistsAsync(It.IsAny<string>()), Times.Never);
+            userRepository.Verify(x => x.GetByUserNameAsync(It.IsAny<string>()), Times.Never);
+        }
+
         private class TestCacheManager : ICacheManager
         {
             private readonly Dictionary<string, object> _cache = new Dictionary<string, object>();
